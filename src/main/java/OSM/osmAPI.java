@@ -19,13 +19,14 @@ import java.util.ArrayList;
 
 
 public class osmAPI {
-    private final String pathToOverPassAPI = "https://overpass-api.de/api/interpreter?data=";
-    private final String pathToNominatim = "";
+    private static final String PATH_TO_OVERPASS_API = "https://overpass-api.de/api/interpreter?data=";
+    // TODO: Добавить ссылку к Nominatim API (геокодирование)
+    //private final String pathToNominatim = "";
     private final Gson gson = new Gson();
 
     private String RequestOverPass(String query) {
         String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-        String urlString = "http://overpass-api.de/api/interpreter?data=" + encodedQuery;
+        String urlString = PATH_TO_OVERPASS_API + encodedQuery;
 
         HttpURLConnection conn = null;
         StringBuilder content = new StringBuilder();
@@ -60,7 +61,7 @@ public class osmAPI {
 
         return content.toString();
     }
-
+    
     private ArrayList<Relation> parseElementsFromResponseRelation(String result) {
         JsonObject jsonObject = JsonParser.parseString(result).getAsJsonObject();
         JsonArray elements = jsonObject.getAsJsonArray("elements");
@@ -152,8 +153,8 @@ public class osmAPI {
         }
         //Шаблон запроса
         String query =  "[out:json];" +
-                type + "(around:100," + latitude + "," + longitude + ");" +
-                "out body;";
+            type + "(around:100," + latitude + "," + longitude + ");" +
+            "out body;";
 
         String result = RequestOverPass(query);
         //Парсинг ответа
@@ -182,10 +183,10 @@ public class osmAPI {
     out body;
      */
     public ArrayList<Node> GetOSMEntityByAddress(String city, String street, String housenumber) {
-        String query =
-                "[out:json];" +
-                        "node[\"addr:city\"=\"" + city + "\"][\"addr:street\"=\"" + street + "\"][\\\"addr:housenumber\\\"=\\\"" + housenumber + "\\\"];" +
-                        "out body;";
+        String query = 
+            "[out:json];" +
+            "node[\"addr:city\"=\"" + city + "\"][\"addr:street\"=\"" + street + "\"][\\\"addr:housenumber\\\"=\\\"" + housenumber + "\\\"];" +
+            "out body;";
 
         String result = RequestOverPass(query);
         //Парсинг ответа
@@ -205,8 +206,8 @@ public class osmAPI {
         }
         //Шаблон запроса
         String query =  "[out:json];" +
-                type + "[\"name\"~\"." + name + ".\"];" +
-                "(._;>;); out body;";
+            type + "[\"name\"~\"." + name + ".\"];" +
+            "(._;>;); out body;";
 
         String result = RequestOverPass(query);
         //Парсинг ответа
@@ -224,7 +225,7 @@ public class osmAPI {
 
         return null;
     }
-
+    
     // Поиск заведений на улице с фильтрацией по тегам
     public ArrayList<Node> institutionOnStreet(String city, String street, Map<String, String> amenity) {
         StringBuilder queryBuilder = new StringBuilder("[out:json];");
@@ -246,12 +247,12 @@ public class osmAPI {
         //Парсинг ответа
         return parseElementsFromResponse(result, "node", Node.class);
     }
-
+    
     // Поиск остановок маршрута общественного транспорта на улице
     /*
     [out:json];
         nwr["addr:street"="проспект Ленина"]["addr:city"="Томск"];
-        nwr[highway=bus_stop](around:100);
+        nwr[highway=bus_stop](around:100); 
     out geom;
      */
     public ArrayList<Node> publicTransportStopsOnStreet(String city, String street) {
