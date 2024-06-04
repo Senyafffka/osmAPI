@@ -1,6 +1,7 @@
 package service;
 
 import com.google.gson.*;
+import dto.deserializer.CoordinatesDtoDeserializer;
 import dto.deserializer.ElementDtoDeserializer;
 
 import api.OverpassApiClient;
@@ -12,14 +13,21 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+
 public class OsmApiService {
     private OverpassApiClient client;
     private Gson gson;
+    private Gson gsonForNominatim;
 
     public OsmApiService() {
         this.client = new OverpassApiClient();
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(ElementDto.class, new ElementDtoDeserializer())
+                .create();
+        this.gsonForNominatim = new GsonBuilder()
+                .registerTypeAdapter(CoordinatesDto.class, new CoordinatesDtoDeserializer())
                 .create();
     }
 
@@ -157,7 +165,6 @@ public class OsmApiService {
                     Element element = getElementById(member.getType(), member.getRef());
                     elements.add(element);
                 }
-
                 return ElementMapper.map(relationDto, elements);
             case "way":
                 WayDto wayDto = (WayDto) response.getElements().get(0);
@@ -316,5 +323,39 @@ public class OsmApiService {
         }
 
         return result;
+    }
+
+    public ArrayList<Coordinates> directGeocoding(String addr) throws IOException{
+        String jsonResponse = client.sendQueryToNominatim("/search?q=" + addr + "&format=json&addressdetails=1");
+
+        Type listType = new TypeToken<List<CoordinatesDto>>() {}.getType();
+        List<CoordinatesDto> coordinatesList = gson.fromJson(jsonResponse, listType);
+
+        if (coordinatesList.isEmpty()) {
+            return null;
+        }
+
+        ArrayList<Coordinates> result = new ArrayList<>();
+
+
+
+        for (CoordinatesDto coords : coordinatesList) {
+            result.add(ElementMapper.map((coords)));
+        }
+
+        return result;
+    }
+
+    public Address reverseGeocoding(double lat, double lon) throws IOException{
+        String jsonResponse = client.sendQueryToNominatim("/reverse?format=json&lat=" + lat + "&lon=" + lon);
+
+
+        AddressDto addressDtos = gson.fromJson(jsonResponse, AddressDto.class);
+
+        if (addressDtos == null) {
+            return null;
+        }
+
+        return ElementMapper.map((addressDtos));
     }
 }

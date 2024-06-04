@@ -3,6 +3,8 @@ package org.example;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import OSM.*;
+import model.Address;
+import model.Coordinates;
 import model.Element;
 import service.OsmApiService;
 import java.io.IOException;
@@ -103,8 +105,25 @@ public class Main {
             e.printStackTrace();
         }*/
 
+        /*
         try{
             ArrayList<String>  rel1 = apiService.publicTransportRoutesInTheCity("Томск");
+            System.out.println("Работа закончена");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+         */
+        /*
+        try{
+            ArrayList<Coordinates>  rel1 = apiService.directGeocoding("Томск, проспект Ленина 36");
+            System.out.println("Работа закончена");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        */
+
+        try{
+            Address  rel1 = apiService.reverseGeocoding(56.4695871, 84.94677153472858);
             System.out.println("Работа закончена");
         } catch (IOException e) {
             e.printStackTrace();

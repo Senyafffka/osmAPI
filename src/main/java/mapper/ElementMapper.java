@@ -16,4 +16,13 @@ public class ElementMapper {
     public static Relation map(RelationDto relationDto, List<Element> members) {
         return new Relation(relationDto.getId(), relationDto.getTags(), members);
     }
+
+    public static Coordinates map(CoordinatesDto coordDto) {
+        return new Coordinates(coordDto.getType(), coordDto.getId(), coordDto.getDisplayName(),
+                coordDto.getLat(), coordDto.getLon(), coordDto.getBoundingBox());
+    }
+
+    public static Address map(AddressDto addressDto) {
+        return new Address(addressDto.getType(), addressDto.getId(), addressDto.getDisplayName());
+    }
 }
