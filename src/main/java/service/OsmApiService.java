@@ -1,10 +1,9 @@
 package service;
 
 import com.google.gson.*;
-import dto.deserializer.CoordinatesDtoDeserializer;
 import dto.deserializer.ElementDtoDeserializer;
 
-import api.OverpassApiClient;
+import api.ApiClient;
 import model.*;
 import dto.*;
 import mapper.ElementMapper;
@@ -17,17 +16,13 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 
 public class OsmApiService {
-    private OverpassApiClient client;
+    private ApiClient client;
     private Gson gson;
-    private Gson gsonForNominatim;
 
     public OsmApiService() {
-        this.client = new OverpassApiClient();
+        this.client = new ApiClient();
         this.gson = new GsonBuilder()
                 .registerTypeAdapter(ElementDto.class, new ElementDtoDeserializer())
-                .create();
-        this.gsonForNominatim = new GsonBuilder()
-                .registerTypeAdapter(CoordinatesDto.class, new CoordinatesDtoDeserializer())
                 .create();
     }
 
@@ -90,7 +85,6 @@ public class OsmApiService {
         return ElementMapper.map(relationDto, elements);
     }
 
-    // TODO: Проверить Relation
     public Element getElementById(String type, long id) throws IOException {
         String query = "[out:json];" + type + "(" + id + ");out body;";
         String jsonResponse = client.sendQuery(query);
@@ -112,8 +106,6 @@ public class OsmApiService {
     }
 
 
-    //раньше это была функция GetOSMEntityByAddress, но возвращала она ArrayList<OSM.Node>, поэтому изменил её название,
-    //ВИ тогда тоже наверное стоит переименовать
     public ArrayList<Node> GetNodesByAddress(String city, String street, String housenumber) throws IOException {
         String query =  "[out:json];" +
                 "node[\"addr:city\"=\"" + city + "\"][\"addr:street\"=\"" + street + "\"][\"addr:housenumber\"=\"" + housenumber + "\"];" +
@@ -132,9 +124,6 @@ public class OsmApiService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    //не совсем понятно какой брать радиус, изначально думал, что возвращается ближайший к центру объект — оказалось нет,
-    //радиус же поиска в один метр кажется маленьким, с другой стороны врядли координаты берутся из головы,
-    //поэтому скорее всего будут указаны точно
     public Element GetOSMEntityByCoordinate(String type, Double latitude, Double longitude) throws IOException{
         if (!type.equals("node") && !type.equals("relation")  && !type.equals("way")){
             throw new IllegalArgumentException("Несуществующий тип");
@@ -152,7 +141,6 @@ public class OsmApiService {
             return null;
         }
 
-        //Парсинг ответа
         switch (type){
             case "node":
                 ElementDto elementDto = response.getElements().get(0);
@@ -176,7 +164,6 @@ public class OsmApiService {
         return null;
     }
 
-    //relation работает, но ооооочень медленно
     public ArrayList<Element> GetOSMEntityByName(String type, String name) throws IOException {
         if (!type.equals("node") && !type.equals("relation")  && !type.equals("way")){
             throw new IllegalArgumentException("Несуществующий тип");
@@ -303,7 +290,6 @@ public class OsmApiService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    //адский запрос, чтобы дождаться его выполения сделал так чтобы возвращался только массив с названиями маршрутов
     public ArrayList<String> publicTransportRoutesInTheCity(String city) throws IOException {
         String query = "[out:json];" +
                 "area[\"name\"=\"" + city + "\"]->.cityArea;" +
@@ -334,10 +320,7 @@ public class OsmApiService {
         if (coordinatesList.isEmpty()) {
             return null;
         }
-
         ArrayList<Coordinates> result = new ArrayList<>();
-
-
 
         for (CoordinatesDto coords : coordinatesList) {
             result.add(ElementMapper.map((coords)));
@@ -348,8 +331,6 @@ public class OsmApiService {
 
     public Address reverseGeocoding(double lat, double lon) throws IOException{
         String jsonResponse = client.sendQueryToNominatim("/reverse?format=json&lat=" + lat + "&lon=" + lon);
-
-
         AddressDto addressDtos = gson.fromJson(jsonResponse, AddressDto.class);
 
         if (addressDtos == null) {

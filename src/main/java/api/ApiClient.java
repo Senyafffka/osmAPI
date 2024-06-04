@@ -5,12 +5,12 @@ import okhttp3.Request;
 import okhttp3.Response;
 import java.io.IOException;
 
-public class OverpassApiClient {
+public class ApiClient {
     private static final String OVERPASS_API_URL = "http://overpass-api.de/api/interpreter";
     private static final String NOMINATIM_API_URL = "https://nominatim.openstreetmap.org";
     private OkHttpClient client;
 
-    public OverpassApiClient() {
+    public ApiClient() {
         this.client = new OkHttpClient();
     }
 
