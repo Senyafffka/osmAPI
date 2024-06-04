@@ -9,4 +9,8 @@ public class Node extends osmEntity {
         this.lon = lon;
         this.id = id;
     }
+
+    public String toString() {
+        return "Node{id=" + id + ", lat=" + lat + ", lon=" + lon + "}";
+    }
 }
