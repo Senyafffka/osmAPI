@@ -9,6 +9,8 @@ import dto.*;
 import mapper.ElementMapper;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,41 +52,6 @@ public class OsmApiService {
                 .collect(Collectors.toList());
     }
 
-    public Way getWayById(long wayId) throws IOException {
-        String query = "[out:json];way(" + wayId + ");out body;";
-        String jsonResponse = client.sendQuery(query);
-        OverpassResponseDto response = gson.fromJson(jsonResponse, OverpassResponseDto.class);
-
-        if (response.getElements().isEmpty() || !(response.getElements().get(0) instanceof WayDto)) {
-            return null;
-        }
-
-        WayDto wayDto = (WayDto) response.getElements().get(0);
-        List<Node> nodes = getNodesByIds(wayDto.getNodes());
-
-        return ElementMapper.map(wayDto, nodes);
-    }
-
-    public Relation getRelationById(long relationId) throws IOException {
-        String query = "[out:json];relation(" + relationId + ");out body;";
-        String jsonResponse = client.sendQuery(query);
-        OverpassResponseDto response = gson.fromJson(jsonResponse, OverpassResponseDto.class);
-
-        if (response.getElements().isEmpty() || !(response.getElements().get(0) instanceof RelationDto)) {
-            return null;
-        }
-
-        RelationDto relationDto = (RelationDto) response.getElements().get(0);
-        List<Element> elements = new ArrayList<>();
-
-        for (RelationMemberDto member : relationDto.getMembers()) {
-            Element element = getElementById(member.getType(), member.getRef());
-            elements.add(element);
-        }
-
-        return ElementMapper.map(relationDto, elements);
-    }
-
     public Element getElementById(String type, long id) throws IOException {
         String query = "[out:json];" + type + "(" + id + ");out body;";
         String jsonResponse = client.sendQuery(query);
@@ -95,18 +62,28 @@ public class OsmApiService {
         }
 
         ElementDto elementDto = response.getElements().get(0);
-        if (elementDto instanceof NodeDto) {
-            return ElementMapper.map((NodeDto) elementDto);
-        } else if (elementDto instanceof WayDto) {
-            return getWayById(elementDto.getId());
-        } else if (elementDto instanceof RelationDto) {
-            return getRelationById(elementDto.getId());
+        switch (type){
+            case "node":
+                return ElementMapper.map((NodeDto) elementDto);
+            case "way":
+                WayDto wayDto = (WayDto) elementDto;
+                List<Node> nodes = getNodesByIds(wayDto.getNodes());
+                return ElementMapper.map(wayDto, nodes);
+            case "relation":
+                RelationDto relationDto = (RelationDto) elementDto;
+                List<Element> elements = new ArrayList<>();
+                for (RelationMemberDto member : relationDto.getMembers()) {
+                    Element element = getElementById(member.getType(), member.getRef());
+                    elements.add(element);
+                }
+                return ElementMapper.map(relationDto, elements);
         }
+
         return null;
     }
 
 
-    public ArrayList<Node> GetNodesByAddress(String city, String street, String housenumber) throws IOException {
+    public ArrayList<Node> getNodesByAddress(String city, String street, String housenumber) throws IOException {
         String query =  "[out:json];" +
                 "node[\"addr:city\"=\"" + city + "\"][\"addr:street\"=\"" + street + "\"][\"addr:housenumber\"=\"" + housenumber + "\"];" +
                 "out body;";
@@ -124,7 +101,7 @@ public class OsmApiService {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public Element GetOSMEntityByCoordinate(String type, Double latitude, Double longitude) throws IOException{
+    public Element getOSMEntityByCoordinate(String type, Double latitude, Double longitude) throws IOException{
         if (!type.equals("node") && !type.equals("relation")  && !type.equals("way")){
             throw new IllegalArgumentException("Несуществующий тип");
         }
@@ -164,7 +141,7 @@ public class OsmApiService {
         return null;
     }
 
-    public ArrayList<Element> GetOSMEntityByName(String type, String name) throws IOException {
+    public ArrayList<Element> getOSMEntityByName(String type, String name) throws IOException {
         if (!type.equals("node") && !type.equals("relation")  && !type.equals("way")){
             throw new IllegalArgumentException("Несуществующий тип");
         }
@@ -338,5 +315,57 @@ public class OsmApiService {
         }
 
         return ElementMapper.map((addressDtos));
+    }
+
+    public List<Way> getWaysByStreet(String streetName, String cityName) throws IOException {
+        StringBuilder queryBuilder = new StringBuilder("[out:json];");
+        queryBuilder.append("way[\"addr:street\"=\"").append(streetName).append("\"][\"addr:city\"=\"").append(cityName).append("\"];out body;");
+
+        String query = queryBuilder.toString();
+        String jsonResponse = client.sendQuery(query);
+        OverpassResponseDto response = gson.fromJson(jsonResponse, OverpassResponseDto.class);
+
+        List<WayDto> wayDtos = response.getElements().stream()
+                .filter(e -> e instanceof WayDto)
+                .map(e -> (WayDto) e)
+                .collect(Collectors.toList());
+
+        List<Way> ways = new ArrayList<>();
+        for (WayDto wayDto : wayDtos) {
+            List<Node> nodes = getNodesByIds(wayDto.getNodes());
+            Way way = ElementMapper.map(wayDto, nodes);
+            ways.add(way);
+        }
+
+        return ways;
+    }
+
+    public ArrayList<Node> institutionOnCity(String city, Map<String, String> amenity) throws IOException {
+        StringBuilder queryBuilder = new StringBuilder("[out:json];");
+        queryBuilder.append("nwr[\"addr:city\"=\"").append(city).append("\"];");
+
+        queryBuilder.append("nwr[");
+        for (Map.Entry<String, String> entry : amenity.entrySet()) {
+            queryBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append("][");
+        }
+        queryBuilder.deleteCharAt(queryBuilder.length() - 1);
+        queryBuilder.deleteCharAt(queryBuilder.length() - 1);
+        queryBuilder.append("]");
+
+        queryBuilder.append("(around:20); out geom;");
+        String query = queryBuilder.toString();
+
+        String jsonResponse = client.sendQuery(query);
+        OverpassResponseDto response = gson.fromJson(jsonResponse, OverpassResponseDto.class);
+
+        List<NodeDto> nodeDtos = response.getElements().stream()
+                .filter(e -> e instanceof NodeDto)
+                .map(e -> (NodeDto) e)
+                .toList();
+
+        return nodeDtos.stream()
+                .map(ElementMapper::map)
+                .collect(Collectors.toCollection(ArrayList::new));
+
     }
 }

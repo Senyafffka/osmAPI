@@ -1,8 +1,10 @@
 package org.example;
 
-import model.Address;
+import model.*;
 import service.OsmApiService;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -11,23 +13,23 @@ public class Main {
 
         OsmApiService apiService = new OsmApiService();
 
-        /*try{
-            //model.Way way = (model.Way) apiService.getElementById("way", 5090250);
+        /*
+        try{
+            var node = apiService.getElementById("node", 1);
             //List<Long> ids = new ArrayList<>();
             //ids.add(21533912L);
             //ids.add(822403L);
             //ids.add(1L);
             //List<model.Node> nodes = apiService.getNodesByIds(ids);
-            //model.Way way = apiService.getWayById(5090250);
-            model.Relation rel = apiService.getRelationById(13092746);
             System.out.println("Работа закончена");
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
+         */
 
         /*
         try{
-            ArrayList<model.Node> rel = apiService.GetNodesByAddress("Томск", "проспект Ленина", "97");
+            ArrayList<Node> rel = apiService.getNodesByAddress("Томск", "проспект Ленина", "97");
             System.out.println("Работа закончена");
         } catch (IOException e) {
             e.printStackTrace();
@@ -94,8 +96,29 @@ public class Main {
         }
         */
 
+        /*
         try{
             Address  rel1 = apiService.reverseGeocoding(56.4695871, 84.94677153472858);
+            System.out.println("Работа закончена");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+         */
+
+        /*
+        try{
+            var ways = apiService.getWaysByStreet("Unter den Linden", "Berlin");
+            System.out.println("Работа закончена");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        */
+
+
+        try{
+            HashMap<String, String> tags = new HashMap<>();
+            tags.put("amenity", "cafe");
+            var  nodes = apiService.institutionOnCity("Томск", tags);
             System.out.println("Работа закончена");
         } catch (IOException e) {
             e.printStackTrace();
