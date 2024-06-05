@@ -18,8 +18,17 @@
 ### getNodesByIds(List<Long> ids)
 > Возвращает список точек `Node` по ID объекта.
 
+### institutionOnCity(String city, Map<String, String> amenity)
+> Возвращает список точек `Node` по встроенным тегам в заданном городе.
+
 ### getElementById(String type, long id) 
-> Возвращает элемент (сущность osm) по типу сущности и ID
+> Возвращает элемент (сущность osm) по типу сущности и ID.
+
+### getWaysByStreet(String streetName, String cityName)
+Возвращает список всех линий `Way` в заданном городе по заданной улице.
+
+### getNodesByAddress(String city, String street, String housenumber)
+Возвращает список точек `Node`, которые представляют из себя заведения, расположенные по заданному адресу `Address`.
 
 ### GetOSMEntityByCoordinate(String type, Double latitude, Double longitude)
 > Возвращает элемент соответсвующий тому типу сущности osm, который указывался в запросе вместе с координатами `Coordinates`.
