@@ -15,32 +15,32 @@
 > Именно эти сущности будут использоваться в качестве входных данных или возвращаемых значений.
 
 ## **Краткое описание методов:**
-+ ### getNodesByIds(List<Long> ids)
+### getNodesByIds(List<Long> ids)
 > Возвращает список точек `Node` по ID объекта.
 
-+ ### getElementById(String type, long id) 
+### getElementById(String type, long id) 
 > Возвращает элемент (сущность osm) по типу сущности и ID
 
-+ ### GetOSMEntityByCoordinate(String type, Double latitude, Double longitude)
+### GetOSMEntityByCoordinate(String type, Double latitude, Double longitude)
 > Возвращает элемент соответсвующий тому типу сущности osm, который указывался в запросе вместе с координатами `Coordinates`.
   
-+ ### GetOSMEntityByName(String type, String name)
+### GetOSMEntityByName(String type, String name)
 > Возвращает список элементов, представляющих собой сущности osm по типу и имени.
 
-+ ### institutionOnStreet(String city, String street, Map<String, String> amenity)
+### institutionOnStreet(String city, String street, Map<String, String> amenity)
 > Возвращает список точек `Node` по встроенным тегам в заданном городе, на определенной улице.
 
-+ ### publicTransportStopsOnStreet(String city, String street)
+### publicTransportStopsOnStreet(String city, String street)
 > Возвращает список точек `Node`, представляющих собой транспортные остановки в выбранном городе, на заданной улице.
 
-+ ### publicTransportStopsRouteInTheCity(String city, int routeNumber)
+### publicTransportStopsRouteInTheCity(String city, int routeNumber)
 > Возвращает список точек `Node`, представляющих собой транспортные остановки заданного маршрута автобуса (номер маршрута) в заданном городе.
 
-+ ### publicTransportRoutesInTheCity(String city)
+### publicTransportRoutesInTheCity(String city)
 > Возвращает все номера маршрутов автобусов в заданном городе.
 
-+ ### directGeocoding(String addr)
+### directGeocoding(String addr)
 > Прямое геокодирование возаращает координаты `Coordinates` по переданному адресу `Address`.
 
-+ ### reverseGeocoding(double lat, double lon)
+### reverseGeocoding(double lat, double lon)
 > Обратное геокодирование возвращает адрес `Address` по переанным координатам `Coordinates`.
